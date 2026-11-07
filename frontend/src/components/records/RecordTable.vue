@@ -57,12 +57,12 @@ defineProps({
 <style scoped>
 .record-table-scroll {
   overflow-x: auto;
-  border: 1px solid var(--border-color, #e3e8e7);
+  border: 1px solid var(--color-border, #e3e8e7);
   border-radius: 12px;
 }
 
 .record-table-scroll:focus-visible {
-  outline: 3px solid var(--focus-color, #88c5b4);
+  outline: 3px solid var(--color-accent, #88c5b4);
   outline-offset: 3px;
 }
 
@@ -70,7 +70,7 @@ defineProps({
   width: 100%;
   min-width: 620px;
   border-collapse: collapse;
-  color: var(--text-primary, #263c35);
+  color: var(--color-text, #263c35);
   font-size: 14px;
   line-height: 1.6;
   text-align: left;
@@ -92,19 +92,19 @@ defineProps({
 }
 
 .record-table th {
-  background: var(--surface-muted, #f4f7f6);
-  color: var(--text-secondary, #667770);
+  background: var(--color-bg, #f4f7f6);
+  color: var(--color-muted, #667770);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .record-table tbody tr + tr {
-  border-top: 1px solid var(--border-color, #e3e8e7);
+  border-top: 1px solid var(--color-border, #e3e8e7);
 }
 
 .record-table tbody tr:hover {
-  background: var(--surface-hover, #fafcfb);
+  background: var(--color-bg, #fafcfb);
 }
 
 .record-date,
@@ -121,13 +121,13 @@ defineProps({
 }
 
 .record-type--income {
-  background: #e8f4ed;
-  color: #26734e;
+  background: var(--color-accent-soft, #e8f4ed);
+  color: var(--color-income, #26734e);
 }
 
 .record-type--expense {
-  background: #fff0e8;
-  color: #a04726;
+  background: var(--color-danger-soft, #fff0e8);
+  color: var(--color-expense, #a04726);
 }
 
 .record-amount-heading,
@@ -141,8 +141,8 @@ defineProps({
   font-variant-numeric: tabular-nums;
 }
 
-.record-amount--income { color: #26734e; }
-.record-amount--expense { color: #a04726; }
+.record-amount--income { color: var(--color-income, #26734e); }
+.record-amount--expense { color: var(--color-expense, #a04726); }
 
 .record-note {
   min-width: 120px;
@@ -151,12 +151,12 @@ defineProps({
   white-space: pre-wrap;
 }
 
-.record-note--empty { color: var(--text-secondary, #667770); }
+.record-note--empty { color: var(--color-muted, #667770); }
 .record-actions { white-space: nowrap; }
 
 .record-table-empty {
   padding: 40px 18px;
-  color: var(--text-secondary, #667770);
+  color: var(--color-muted, #667770);
   text-align: center;
 }
 

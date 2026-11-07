@@ -6,7 +6,7 @@
   "description": "9 号记录展示模块的独立测试与预览，不替代正式前端框架",
   "engines": { "node": ">=24.12.0" },
   "scripts": {
-    "test": "node --test --test-concurrency=1 records.test.mjs",
+    "test": "node --test --test-concurrency=1 records.test.mjs integration.test.mjs",
     "preview": "node preview.mjs"
   },
   "devDependencies": {

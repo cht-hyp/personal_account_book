@@ -146,12 +146,14 @@ async function loadPage(nextOffset) {
       return
     }
 
-    items.value = Array.isArray(page?.items) ? page.items : []
-    total.value = Number.isInteger(page?.total) ? page.total : 0
-    offset.value = Number.isInteger(page?.offset) ? page.offset : requestedOffset
-    pageLimit.value = Number.isInteger(page?.limit) && page.limit > 0
-      ? page.limit
-      : PAGE_SIZE
+    if (!Array.isArray(page?.items) || !Number.isInteger(page.total) || page.total < page.items.length ||
+        !Number.isInteger(page.offset) || page.offset < 0 || !Number.isInteger(page.limit) || page.limit < 1) {
+      throw new Error('记录数据格式不正确，请重试。')
+    }
+    items.value = page.items
+    total.value = page.total
+    offset.value = page.offset
+    pageLimit.value = page.limit
   } catch (requestError) {
     if (requestId !== requestSequence) {
       return
@@ -159,7 +161,7 @@ async function loadPage(nextOffset) {
 
     error.value = isApiError(requestError)
       ? `${requestError.message}（${requestError.code}）`
-      : '请求失败，请稍后重试。'
+      : (requestError?.message || '请求失败，请稍后重试。')
     errorDetails.value = requestError?.fields ?? {}
   } finally {
     if (requestId === requestSequence) {

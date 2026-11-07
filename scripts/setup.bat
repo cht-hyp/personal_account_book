@@ -21,9 +21,6 @@ if not exist ".venv\Scripts\python.exe" (
     )
 )
 
-rem 清理可能损坏的 pip 缓存，避免 "Cache entry deserialization failed" 干扰解析。
-".venv\Scripts\python.exe" -m pip cache purge >nul 2>nul
-
 set "REQ=requirements.txt"
 if /i "%~1"=="dev" set "REQ=requirements-dev.txt"
 

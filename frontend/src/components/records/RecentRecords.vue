@@ -94,10 +94,10 @@ onBeforeUnmount(() => { latestRequestId += 1 })
 <style scoped>
 .recent-records {
   padding: 24px;
-  border: 1px solid var(--border-color, #e3e8e7);
+  border: 1px solid var(--color-border, #e3e8e7);
   border-radius: 18px;
-  background: var(--surface-color, #fff);
-  color: var(--text-primary, #263c35);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #263c35);
 }
 
 .recent-records-header {
@@ -117,7 +117,7 @@ onBeforeUnmount(() => { latestRequestId += 1 })
 .recent-records-header p,
 .recent-records-count {
   margin: 0;
-  color: var(--text-secondary, #667770);
+  color: var(--color-muted, #667770);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -125,18 +125,18 @@ onBeforeUnmount(() => { latestRequestId += 1 })
 .records-refresh {
   flex-shrink: 0;
   padding: 9px 14px;
-  border: 1px solid var(--border-color, #d5dfda);
+  border: 1px solid var(--color-border, #d5dfda);
   border-radius: 9px;
-  background: var(--surface-color, #fff);
-  color: var(--text-primary, #263c35);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #263c35);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
 }
 
-.records-refresh:hover:not(:disabled) { background: #f0f7f3; }
+.records-refresh:hover:not(:disabled) { background: var(--color-accent-soft, #f0f7f3); }
 .records-refresh:disabled { cursor: wait; opacity: 0.6; }
-.records-refresh:focus-visible { outline: 3px solid #88c5b4; outline-offset: 2px; }
+.records-refresh:focus-visible { outline: 3px solid var(--color-accent, #88c5b4); outline-offset: 2px; }
 
 .records-state {
   display: flex;
@@ -145,17 +145,17 @@ onBeforeUnmount(() => { latestRequestId += 1 })
   justify-content: center;
   align-items: center;
   padding: 24px;
-  border: 1px dashed var(--border-color, #d5dfda);
+  border: 1px dashed var(--color-border, #d5dfda);
   border-radius: 12px;
-  background: var(--surface-muted, #f8faf9);
+  background: var(--color-bg, #f8faf9);
   text-align: center;
 }
 
 .records-state h3 { margin: 0 0 10px; font-size: 16px; font-weight: 600; }
-.records-state p { margin: 0; color: var(--text-secondary, #667770); font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
-.records-state--error { border-color: #e7cabb; background: #fffaf7; }
+.records-state p { margin: 0; color: var(--color-muted, #667770); font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.records-state--error { border-color: var(--color-danger, #e7cabb); background: var(--color-danger-soft, #fffaf7); }
 .records-state--error .records-refresh { margin-top: 18px; }
-.records-loading-dot { width: 10px; height: 10px; margin-bottom: 14px; border-radius: 50%; background: #3a8b69; }
+.records-loading-dot { width: 10px; height: 10px; margin-bottom: 14px; border-radius: 50%; background: var(--color-accent, #3a8b69); }
 .recent-records-count { margin-top: 14px; text-align: right; }
 
 @media (max-width: 600px) {

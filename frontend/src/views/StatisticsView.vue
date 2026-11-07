@@ -4,7 +4,7 @@
  * 数据统一来自 /api/statistics（经 api/client.js），只消费后端汇总结果，
  * 不在本页重新实现业务统计。FilterPanel 契约：search(filters) / reset()。
  */
-import { ref, watch } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import { getStatistics, isApiError } from '../api/client.js'
 import { formatMoney } from '../utils/format.js'
 import FilterPanel from '../components/filters/FilterPanel.vue'
@@ -52,6 +52,7 @@ function handleReset() {
 }
 
 watch(() => props.refreshKey, load, { immediate: true })
+onBeforeUnmount(() => { requestSeq += 1 })
 </script>
 
 <template>

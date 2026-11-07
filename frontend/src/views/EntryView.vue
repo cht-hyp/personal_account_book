@@ -12,13 +12,13 @@ defineProps({
   refreshKey: { type: Number, default: 0 }
 })
 
-const emit = defineEmits(['saved'])
+const emit = defineEmits(['saved', 'saving'])
 </script>
 
 <template>
   <div class="entry-view">
     <section class="panel panel-form">
-      <RecordForm :categories="categories" @saved="emit('saved', $event)" />
+      <RecordForm :categories="categories" @saved="emit('saved', $event)" @saving="emit('saving', $event)" />
     </section>
 
     <section class="panel panel-recent">
