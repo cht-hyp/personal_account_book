@@ -5,11 +5,11 @@ import { formatMoney, todayLocalISO } from '../../utils/format.js'
 
 // README 9.2：类别由 App 通过 props 注入，表单不自行请求，也不内置备用类别。
 const props = defineProps({
-  categories: { type: Object, required: true }
+  categories: { type: Object, default: null }
 })
 
 // README 9.3：仅持久化成功后发出 saved(record)，由 EntryView 转发给 App 增加 refreshKey。
-const emit = defineEmits(['saved'])
+const emit = defineEmits(['saved', 'saving'])
 
 const MAX_NOTE_LENGTH = 200
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
@@ -106,6 +106,7 @@ async function handleSubmit() {
   }
 
   submitting.value = true
+  emit('saving', true)
   try {
     const record = await createRecord(payload)
     const cents = record?.amount_cents
@@ -129,6 +130,7 @@ async function handleSubmit() {
     // 失败不 emit saved，不增加刷新标记，不清空表单。
   } finally {
     submitting.value = false
+    emit('saving', false)
   }
 }
 </script>

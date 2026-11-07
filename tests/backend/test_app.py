@@ -117,3 +117,32 @@ def test_api_not_shadowed_by_static_catchall(tmp_path):
     resp = client.get('/api/not-there')
     assert resp.status_code == 404
     assert resp.get_json()['error']['code'] == 'NOT_FOUND'
+
+
+def test_real_write_query_statistics_survive_restart(tmp_path):
+    config = {'TESTING': True, 'DATA_FILE': str(tmp_path / 'ledger.json'), 'WEB_DIST_DIR': str(tmp_path / 'web')}
+    client = create_app(config).test_client()
+    for kind, amount, category in [('income', '1000.00', '工资'), ('expense', '20.00', '餐饮'), ('expense', '5.00', '交通')]:
+        response = client.post('/api/records', json={'date': '2026-11-07', 'type': kind, 'amount': amount, 'category': category, 'note': ''})
+        assert response.status_code == 201
+    reopened = create_app(config).test_client()
+    assert reopened.get('/api/records?limit=10&offset=0').get_json()['data']['total'] == 3
+    filtered = reopened.get('/api/records?type=expense&category=餐饮').get_json()['data']
+    assert filtered['total'] == 1
+    stats = reopened.get('/api/statistics').get_json()['data']
+    assert (stats['income_cents'], stats['expense_cents'], stats['balance_cents']) == (100000, 2500, 97500)
+
+
+def test_internal_import_error_is_not_hidden(tmp_path, monkeypatch):
+    import builtins
+    import pytest
+    original = builtins.__import__
+
+    def broken(name, *args, **kwargs):
+        if name == 'routes.record_query':
+            raise ImportError('internal dependency failure')
+        return original(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, '__import__', broken)
+    with pytest.raises(ImportError, match='internal dependency failure'):
+        make_app(tmp_path)
