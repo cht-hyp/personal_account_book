@@ -20,6 +20,8 @@ const PAGES = [
 ]
 
 const activePage = ref('entry')
+// 保存期间保持表单挂载，确保完成通知能够到达 App。
+const saving = ref(false)
 
 /** 成功后递增，作为“数据已变化”的信号发给页面组件。 */
 const refreshKey = ref(0)
@@ -60,6 +62,7 @@ function handleSaved(record) {
 }
 
 function selectPage(key) {
+  if (saving.value) return
   activePage.value = key
 }
 
@@ -87,6 +90,7 @@ onBeforeUnmount(() => {
             class="nav-item"
             :class="{ 'nav-item-active': activePage === page.key }"
             :aria-current="activePage === page.key ? 'page' : undefined"
+            :disabled="saving"
             @click="selectPage(page.key)"
           >
             {{ page.label }}
@@ -113,6 +117,7 @@ onBeforeUnmount(() => {
           :categories="categories"
           :refresh-key="refreshKey"
           @saved="handleSaved"
+          @saving="saving = $event"
         />
       </template>
 

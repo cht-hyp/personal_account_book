@@ -1,71 +1,27 @@
 """Application factory and assembly (member 1).
 
 ``create_app`` wires configuration, storage, blueprints, error handlers and
-static file serving. Business modules (3/4/5) and storage (2) may not all be
-merged yet; the factory keeps the app runnable and registers them as they
-arrive, without creating placeholder files owned by other members.
+static file serving. Required business modules must be present for startup.
 """
 
-import importlib
 from pathlib import Path
 
 from flask import Flask, abort, jsonify, request, send_from_directory
 
 from .config import Config
-from .errors import ApiError, StorageError
-
-# Blueprints owned by members 3/4/5, registered when their routes module exists.
-_OPTIONAL_BLUEPRINTS = (
-    ('record_write', 'record_write_bp'),
-    ('record_query', 'record_query_bp'),
-    ('statistics', 'statistics_bp'),
-)
-
-
-class _MissingStore:
-    """Placeholder installed until member 2 merges ``storage.py``.
-
-    Health and categories work without storage; any route that actually reads
-    or writes records fails loudly instead of returning a fake result.
-    """
-
-    def initialize(self):
-        """No-op: there is nothing to initialize before the real store lands."""
-
-    def list_records(self):
-        raise StorageError('存储模块尚未接入（storage.py 未合并）')
-
-    def append_record(self, record):
-        raise StorageError('存储模块尚未接入（storage.py 未合并）')
-
-
-def _load_store(app):
-    """Create the storage instance and put it in ``app.extensions['record_store']``."""
-    try:
-        from .storage import JsonRecordStore
-    except ImportError:
-        app.logger.warning(
-            'storage.py（2 号）尚未合并，record_store 使用占位实现；'
-            '记账/查询/统计接口暂不可用'
-        )
-        return _MissingStore()
-    return JsonRecordStore(app.config['DATA_FILE'])
-
+from .errors import ApiError
+from .storage import JsonRecordStore
 
 def _register_blueprints(app):
+    """正式版必须完整装配业务路由，导入失败时让启动明确失败。"""
     from .routes.categories import categories_bp
     from .routes.health import health_bp
+    from .routes.record_write import record_write_bp
+    from .routes.record_query import record_query_bp
+    from .routes.statistics import statistics_bp
 
-    app.register_blueprint(health_bp)
-    app.register_blueprint(categories_bp)
-
-    for module_name, bp_name in _OPTIONAL_BLUEPRINTS:
-        try:
-            module = importlib.import_module(f'.routes.{module_name}', package=__package__)
-        except ImportError:
-            app.logger.warning('Blueprint %s 尚未就绪，跳过注册', bp_name)
-            continue
-        app.register_blueprint(getattr(module, bp_name))
+    for blueprint in (health_bp, categories_bp, record_write_bp, record_query_bp, statistics_bp):
+        app.register_blueprint(blueprint)
 
 
 def _register_error_handlers(app):
@@ -141,8 +97,8 @@ def create_app(test_config=None):
     # 中文类别、备注以 UTF-8 原样返回，不转成 \uXXXX（3 号交接建议）。
     app.json.ensure_ascii = False
 
-    app.extensions['record_store'] = _load_store(app)
-    # 首次运行自动初始化；真实存储由 2 号实现，占位实现为无害空操作。
+    app.extensions['record_store'] = JsonRecordStore(app.config['DATA_FILE'])
+    # 首次运行自动初始化，已有账本只校验、不覆盖。
     app.extensions['record_store'].initialize()
 
     _register_blueprints(app)
