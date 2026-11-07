@@ -1,0 +1,17 @@
+{
+  "name": "qing-ledger-records-checks",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "9 号记录展示模块的独立测试与预览，不替代正式前端框架",
+  "engines": { "node": ">=24.12.0" },
+  "scripts": {
+    "test": "node --test --test-concurrency=1 records.test.mjs",
+    "preview": "node preview.mjs"
+  },
+  "devDependencies": {
+    "@vue/compiler-sfc": "3.5.45",
+    "jsdom": "31.0.0",
+    "vue": "3.5.45"
+  }
+}
