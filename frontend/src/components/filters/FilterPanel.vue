@@ -1,5 +1,10 @@
 <template>
-  <form class="filter-panel" :aria-busy="loading" @submit.prevent="handleSearch">
+  <form class="card filter-panel" :aria-busy="loading" @submit.prevent="handleSearch">
+    <div class="filter-heading">
+      <h2>筛选条件</h2>
+      <p class="hint">组合日期、收支类型、类别和金额范围查询明细。</p>
+    </div>
+
     <div class="filter-grid">
       <label class="field">
         <span>开始日期</span>
@@ -54,10 +59,10 @@
     </div>
 
     <div class="filter-actions">
-      <button class="primary-button" type="submit">
+      <button class="btn btn-primary" type="submit" :disabled="loading">
         {{ loading ? "查询中…" : "查询" }}
       </button>
-      <button class="secondary-button" type="button" @click="handleReset">重置</button>
+      <button class="btn" type="button" :disabled="loading" @click="handleReset">重置</button>
     </div>
   </form>
 </template>
@@ -68,7 +73,7 @@ import { computed, reactive, watch } from 'vue'
 const props = defineProps({
   categories: {
     type: Object,
-    default: () => ({ income: [], expense: [] }),
+    default: null,
   },
   loading: {
     type: Boolean,
@@ -135,36 +140,37 @@ function handleReset() {
 
 <style scoped>
 .filter-panel {
-  padding: 1.25rem;
-  border: 1px solid var(--color-border, #d9e1ea);
-  border-radius: var(--radius-lg, 16px);
-  background: var(--color-surface, #ffffff);
-  box-shadow: var(--shadow-sm, 0 8px 24px rgb(30 55 80 / 8%));
+  display: grid;
+  gap: var(--space-4);
+}
+
+.filter-heading h2 {
+  margin-bottom: var(--space-1);
 }
 
 .filter-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .field {
   display: grid;
-  gap: 0.4rem;
-  color: var(--color-text, #203040);
-  font-size: 0.9rem;
+  gap: var(--space-2);
+  color: var(--color-text, #1f2933);
+  font-size: var(--font-size-sm);
   font-weight: 600;
 }
 
 .field input,
 .field select {
   width: 100%;
-  min-height: 2.65rem;
+  min-height: 38px;
   box-sizing: border-box;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--color-border, #cbd6e2);
-  border-radius: var(--radius-sm, 8px);
-  background: var(--color-input, #ffffff);
+  padding: var(--space-2) 10px;
+  border: 1px solid var(--color-border, #e2e6ea);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--color-surface, #ffffff);
   color: inherit;
   font: inherit;
   font-weight: 400;
@@ -172,43 +178,15 @@ function handleReset() {
 
 .field input:focus,
 .field select:focus {
-  border-color: var(--color-primary, #137c8b);
-  outline: 3px solid var(--color-focus, rgb(19 124 139 / 18%));
+  border-color: var(--color-accent, #0f766e);
+  outline: 2px solid var(--color-accent, #0f766e);
+  outline-offset: 1px;
 }
 
 .filter-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.1rem;
-}
-
-.primary-button,
-.secondary-button {
-  min-width: 6rem;
-  min-height: 2.65rem;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm, 8px);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.primary-button {
-  border: 1px solid var(--color-primary, #137c8b);
-  background: var(--color-primary, #137c8b);
-  color: #ffffff;
-}
-
-.secondary-button {
-  border: 1px solid var(--color-border, #cbd6e2);
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text, #203040);
-}
-
-.primary-button:hover,
-.secondary-button:hover {
-  filter: brightness(0.96);
+  gap: var(--space-2);
 }
 
 @media (max-width: 760px) {
@@ -223,12 +201,8 @@ function handleReset() {
   }
 
   .filter-actions {
-    justify-content: stretch;
-  }
-
-  .primary-button,
-  .secondary-button {
-    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 }
 </style>

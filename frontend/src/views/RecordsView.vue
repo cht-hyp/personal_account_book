@@ -15,70 +15,64 @@
       @reset="handleReset"
     />
 
-    <div v-if="loading" class="state-card" role="status" aria-live="polite">
-      <span class="state-mark" aria-hidden="true"></span>
-      <div>
-        <strong>正在查询记录</strong>
-        <p>请稍候，结果即将显示。</p>
+    <div class="card records-results">
+      <div class="results-heading">
+        <h2>记录列表</h2>
+        <span v-if="!loading && !error" class="hint">
+          共 {{ total }} 条记录，第 {{ pageNumber }} / {{ totalPages }} 页
+        </span>
       </div>
-    </div>
 
-    <div v-else-if="error" class="state-card state-card--error" role="alert">
-      <div>
-        <strong>记录加载失败</strong>
-        <p>{{ error }}</p>
+      <p v-if="loading" class="state-block state-loading" role="status" aria-live="polite">
+        正在查询记录，请稍候…
+      </p>
+
+      <div v-else-if="error" class="state-block state-error" role="alert">
+        <p><strong>记录加载失败：</strong>{{ error }}</p>
         <ul v-if="fieldErrors.length" class="field-errors">
-          <li v-for="[field, message] in fieldErrors" :key="field">
-            {{ field }}：{{ message }}
+          <li v-for="fieldError in fieldErrors" :key="fieldError.field">
+            {{ fieldError.label }}：{{ fieldError.message }}
           </li>
         </ul>
+        <button class="btn" type="button" @click="loadPage(retryOffset)">重新加载</button>
       </div>
-      <button class="retry-button" type="button" @click="loadPage(offset)">重新加载</button>
+
+      <p v-else-if="items.length === 0" class="state-block">
+        {{ hasActiveFilters ? '没有符合当前筛选条件的记录。' : '账本还是空的，请先新增一笔收入或支出。' }}
+      </p>
+
+      <template v-else>
+        <RecordTable :records="items" empty-text="没有符合当前筛选条件的记录" />
+
+        <nav class="pagination" aria-label="记录分页">
+          <button
+            class="btn"
+            type="button"
+            :disabled="offset <= 0"
+            @click="loadPage(offset - pageLimit)"
+          >
+            上一页
+          </button>
+          <span class="hint">第 {{ pageNumber }} 页，共 {{ totalPages }} 页</span>
+          <button
+            class="btn"
+            type="button"
+            :disabled="offset + pageLimit >= total"
+            @click="loadPage(offset + pageLimit)"
+          >
+            下一页
+          </button>
+        </nav>
+      </template>
     </div>
-
-    <div v-else-if="items.length === 0" class="state-card state-card--empty">
-      <div>
-        <strong>{{ hasActiveFilters ? '没有符合条件的记录' : '账本还是空的' }}</strong>
-        <p>
-          {{ hasActiveFilters ? '可以调整筛选条件后再次查询。' : '新增一笔收入或支出后，记录会显示在这里。' }}
-        </p>
-      </div>
-    </div>
-
-    <template v-else>
-      <div class="result-summary" aria-live="polite">
-        <span>共 <strong>{{ total }}</strong> 条记录</span>
-        <span>第 {{ pageNumber }} / {{ totalPages }} 页</span>
-      </div>
-
-      <RecordTable :records="items" />
-
-      <nav class="pagination" aria-label="记录分页">
-        <button
-          type="button"
-          :disabled="offset <= 0"
-          @click="loadPage(offset - PAGE_SIZE)"
-        >
-          上一页
-        </button>
-        <span>第 {{ pageNumber }} 页，共 {{ totalPages }} 页</span>
-        <button
-          type="button"
-          :disabled="offset + pageLimit >= total"
-          @click="loadPage(offset + PAGE_SIZE)"
-        >
-          下一页
-        </button>
-      </nav>
-    </template>
   </section>
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import FilterPanel from '../components/filters/FilterPanel.vue'
 import RecordTable from '../components/records/RecordTable.vue'
-import { listRecords } from '../api/client'
+import { isApiError, listRecords } from '../api/client.js'
 
 const props = defineProps({
   categories: {
@@ -101,13 +95,31 @@ const pageLimit = ref(PAGE_SIZE)
 const loading = ref(false)
 const error = ref('')
 const errorDetails = ref({})
+const retryOffset = ref(0)
 
 let requestSequence = 0
 
-const pageNumber = computed(() => Math.floor(offset.value / PAGE_SIZE) + 1)
-const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
+const FIELD_LABELS = {
+  start_date: '开始日期',
+  end_date: '结束日期',
+  type: '收支类型',
+  category: '类别',
+  min_amount: '最低金额',
+  max_amount: '最高金额',
+  limit: '每页条数',
+  offset: '分页位置',
+}
+
+const pageNumber = computed(() => Math.floor(offset.value / pageLimit.value) + 1)
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageLimit.value)))
 const hasActiveFilters = computed(() => Object.keys(appliedFilters.value).length > 0)
-const fieldErrors = computed(() => Object.entries(errorDetails.value ?? {}))
+const fieldErrors = computed(() =>
+  Object.entries(errorDetails.value ?? {}).map(([field, message]) => ({
+    field,
+    label: FIELD_LABELS[field] || field,
+    message,
+  })),
+)
 
 function normalizeOffset(value) {
   const number = Number(value)
@@ -121,6 +133,7 @@ async function loadPage(nextOffset) {
   loading.value = true
   error.value = ''
   errorDetails.value = {}
+  retryOffset.value = requestedOffset
 
   try {
     const page = await listRecords({
@@ -144,7 +157,9 @@ async function loadPage(nextOffset) {
       return
     }
 
-    error.value = requestError?.message || '请求失败，请稍后重试。'
+    error.value = isApiError(requestError)
+      ? `${requestError.message}（${requestError.code}）`
+      : '请求失败，请稍后重试。'
     errorDetails.value = requestError?.fields ?? {}
   } finally {
     if (requestId === requestSequence) {
@@ -168,10 +183,12 @@ watch(
   () => {
     void loadPage(offset.value)
   },
+  { immediate: true },
 )
 
-onMounted(() => {
-  void loadPage(0)
+onBeforeUnmount(() => {
+  // 页面卸载后丢弃尚未完成的响应，避免旧请求回写已销毁组件。
+  requestSequence += 1
 })
 </script>
 
@@ -185,118 +202,52 @@ onMounted(() => {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .view-header h2 {
-  margin: 0.15rem 0 0.4rem;
-  color: var(--color-heading, #163246);
+  margin: 0 0 var(--space-1);
+  color: var(--color-text, #1f2933);
   font-size: clamp(1.45rem, 3vw, 2rem);
 }
 
 .view-header p {
-  margin: 0;
-  color: var(--color-muted, #5e6d7b);
+  color: var(--color-muted, #5f6b73);
 }
 
 .eyebrow {
-  color: var(--color-primary, #137c8b) !important;
+  color: var(--color-accent, #0f766e) !important;
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.state-card {
+.records-results {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.results-heading {
+  display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
-  min-height: 7rem;
-  padding: 1.25rem;
-  border: 1px dashed var(--color-border, #cbd6e2);
-  border-radius: var(--radius-lg, 16px);
-  background: var(--color-surface, #ffffff);
-}
-
-.state-card strong {
-  color: var(--color-heading, #163246);
-}
-
-.state-card p {
-  margin: 0.35rem 0 0;
-  color: var(--color-muted, #5e6d7b);
-}
-
-.state-card--error {
-  border-color: var(--color-danger-border, #e3a7a7);
-  background: var(--color-danger-bg, #fff7f7);
-}
-
-.state-card--empty {
-  justify-content: center;
-  text-align: center;
-}
-
-.state-mark {
-  width: 1.2rem;
-  height: 1.2rem;
-  flex: 0 0 auto;
-  border: 3px solid var(--color-border, #cbd6e2);
-  border-top-color: var(--color-primary, #137c8b);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  gap: var(--space-3);
 }
 
 .field-errors {
-  margin: 0.6rem 0 0;
+  margin: var(--space-2) 0;
   padding-left: 1.25rem;
-  color: var(--color-danger, #9b2525);
-  font-size: 0.9rem;
+  color: var(--color-danger, #b42318);
+  font-size: var(--font-size-sm);
 }
 
-.retry-button,
-.pagination button {
-  min-height: 2.4rem;
-  padding: 0.45rem 0.85rem;
-  border: 1px solid var(--color-border, #cbd6e2);
-  border-radius: var(--radius-sm, 8px);
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text, #203040);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.retry-button:hover,
-.pagination button:hover:not(:disabled) {
-  border-color: var(--color-primary, #137c8b);
-  color: var(--color-primary, #137c8b);
-}
-
-.pagination button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.result-summary,
 .pagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  color: var(--color-muted, #5e6d7b);
-  font-size: 0.92rem;
-}
-
-.result-summary strong {
-  color: var(--color-heading, #163246);
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  gap: var(--space-4);
 }
 
 @media (max-width: 560px) {
@@ -305,15 +256,9 @@ onMounted(() => {
     justify-content: center;
   }
 
-  .state-card {
+  .results-heading {
     align-items: flex-start;
     flex-direction: column;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .state-mark {
-    animation: none;
   }
 }
 </style>
