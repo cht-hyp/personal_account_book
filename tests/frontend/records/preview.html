@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>轻账本 · 记录展示模块预览</title>
+  <link rel="stylesheet" href="/components.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f3f6f3; color: #263c35; font-family: system-ui, 'Microsoft YaHei', sans-serif; }
+    .preview-shell { max-width: 1080px; margin: 48px auto; padding: 0 24px; }
+    .preview-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 38px; }
+    .preview-logo { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 13px; background: #316b50; color: white; font-size: 22px; }
+    .preview-brand strong { font-size: 22px; letter-spacing: 1px; }
+    .preview-badge { padding: 5px 10px; border: 1px solid #cbd8d0; border-radius: 20px; font-size: 12px; color: #5c7366; }
+    h1 { margin: 0 0 12px; font-size: 30px; font-weight: 650; }
+    .preview-intro { margin: 0 0 24px; color: #67766e; line-height: 1.8; }
+    .preview-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+    .preview-controls button { padding: 9px 15px; border: 1px solid #d3ddd6; border-radius: 9px; background: white; color: #3a5144; font: inherit; font-size: 13px; cursor: pointer; }
+    .preview-controls button.active { border-color: #316b50; background: #316b50; color: white; }
+    .preview-controls button:focus-visible { outline: 3px solid #88c5b4; outline-offset: 2px; }
+    .preview-controls button:disabled { opacity: .6; cursor: wait; }
+    .preview-panel { width: 100%; transition: max-width .2s; }
+    .preview-panel.compact { max-width: 390px; }
+    .preview-footnote { color: #67766e; font-size: 12px; line-height: 1.8; margin-top: 18px; }
+    @media (max-width: 600px) { .preview-shell { margin: 24px auto; padding: 0 14px; } h1 { font-size: 24px; } .preview-brand { flex-wrap: wrap; margin-bottom: 28px; } }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <header class="preview-brand"><span class="preview-logo" aria-hidden="true">账</span><strong>轻账本</strong><span class="preview-badge">9 号 · 记录展示模块</span></header>
+    <h1>每一笔，都有记录</h1>
+    <p class="preview-intro">独立检查最近记录的展示、刷新与异常反馈。当前使用样例数据，不会读写真实账本。</p>
+    <main id="app"></main>
+    <p class="preview-footnote">组件接入正式软件后使用团队公共 API 客户端与金额格式化函数。此处的状态切换按钮仅用于模块验证。</p>
+  </div>
+  <template id="preview-template">
+    <div class="preview-controls" aria-label="预览状态切换">
+      <button v-for="item in modes" :key="item.key" type="button" :class="{ active: mode === item.key }" :disabled="changing" @click="changeMode(item.key)">{{ item.label }}</button>
+      <button type="button" :aria-pressed="compact" @click="compact = !compact">{{ compact ? '恢复宽屏' : '窄容器预览' }}</button>
+    </div>
+    <p v-if="controlError" role="alert">{{ controlError }}</p>
+    <!-- 浏览器直接解析的模板必须使用短横线组件名和成对标签。 -->
+    <div class="preview-panel" :class="{ compact }"><recent-records :refresh-key="refreshKey"></recent-records></div>
+  </template>
+  <script type="module">
+    import { createApp, ref } from '/vendor/vue.js'
+    import RecentRecords from '/components/RecentRecords.js'
+
+    // 仅演示页拥有样例状态；真实组件通过 refreshKey 响应保存完成事件。
+    createApp({
+      components: { RecentRecords },
+      template: '#preview-template',
+      setup() {
+        const mode = ref('normal'), refreshKey = ref(0), compact = ref(false)
+        const changing = ref(false), controlError = ref('')
+        const modes = [{ key: 'normal', label: '正常数据' }, { key: 'empty', label: '空账本' }, { key: 'error', label: '模拟失败' }, { key: 'added', label: '新增后刷新' }]
+        async function changeMode(next) {
+          changing.value = true
+          controlError.value = ''
+          try {
+            const response = await fetch('/__preview/mode?mode=' + next, { method: 'POST' })
+            if (!response.ok) throw new Error('切换预览状态失败')
+            mode.value = next
+            refreshKey.value += 1
+          } catch (error) { controlError.value = error.message }
+          finally { changing.value = false }
+        }
+        return { mode, refreshKey, compact, changing, controlError, modes, changeMode }
+      },
+    }).mount('#app')
+  </script>
+</body>
+</html>
