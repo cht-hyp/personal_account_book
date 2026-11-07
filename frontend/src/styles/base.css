@@ -1,0 +1,225 @@
+/* 公共样式：7 号维护。只放变量、元素默认值和跨页面复用的小工具类；
+   组件内部布局与视觉细节写在组件自己的 <style scoped> 中，避免互相覆盖。 */
+
+:root {
+  /* 颜色 */
+  --color-bg: #f5f6f8;
+  --color-surface: #ffffff;
+  --color-text: #1f2933;
+  --color-muted: #5f6b73;
+  --color-border: #e2e6ea;
+  --color-accent: #0f766e;
+  --color-accent-strong: #0b5c56;
+  --color-accent-soft: #e6f3f1;
+  --color-income: #0f766e;
+  --color-expense: #b42318;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdeceb;
+  --color-warning: #8a5a00;
+  --color-warning-soft: #fdf3dd;
+
+  /* 间距 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* 圆角与阴影 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 4px 12px rgba(16, 24, 40, 0.05);
+
+  /* 字体 */
+  --font-sans: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-lg: 17px;
+  --line-height: 1.6;
+
+  /* 布局 */
+  --content-width: 960px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+h1 {
+  font-size: 22px;
+}
+
+h2 {
+  font-size: var(--font-size-lg);
+}
+
+p {
+  margin: 0;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 按钮：所有页面共用同一套尺寸与焦点样式 */
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 38px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: #c8ced4;
+  background: #fafbfc;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  border-color: var(--color-accent-strong);
+  background: var(--color-accent-strong);
+}
+
+/* 表单元素默认外观，字段细节由各组件自己排 */
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+  border-color: var(--color-accent);
+}
+
+/* 跨页面复用的小块 */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-5);
+}
+
+.field-error {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+.hint {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+.amount-income {
+  color: var(--color-income);
+}
+
+.amount-expense {
+  color: var(--color-expense);
+}
+
+/* loading / error / empty 三种状态必须视觉可分，禁止把失败画成“暂无数据” */
+.state-block {
+  padding: var(--space-5);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.state-error {
+  border-style: solid;
+  border-color: #f3c9c4;
+  background: var(--color-danger-soft);
+  color: #7a1c14;
+  text-align: left;
+}
+
+.state-loading {
+  color: var(--color-muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
