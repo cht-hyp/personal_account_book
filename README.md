@@ -18,21 +18,23 @@
 
 ## 当前进度
 
-当前主分支已建立项目目录骨架，并实现类别定义、类别接口及录入、筛选、分页参数校验；后端应用工厂、统一错误处理、健康检查与启动脚本（1 号）已就绪。记账写入、查询、统计、本地存储与前端界面仍在开发中，完整应用暂未提供。
+当前已接入本地存储、类别与校验、查询、统计、前端框架和记录展示；本轮增加正式记账表单、筛选分页及后端应用装配。新增记账接口（3 号）尚未接入，完整新增流程与 Release 仍待验收。
 
 ## 运行方式
 
-> 当前后端可启动并提供 `/api/health`、`/api/categories`；完整记账流程需待本地存储、写入、查询、统计模块及前端构建产物（`web/`）合并后可用。
+环境：Python（本轮使用 3.11.9 验证；1 号另有 3.13 环境验证记录）、Flask 3.1.2。开发构建需要兼容 Vite 的 Node.js 与 npm，依赖以锁文件为准。
 
-环境要求：Python 3.13（团队已验证 3.13.14），Flask 3.1.2（见 `requirements.txt`）。
+1. 运行 `scripts\setup.bat` 创建虚拟环境并安装后端依赖；开发测试可使用 `scripts\setup.bat dev`。
+2. 在根目录执行 `npm --prefix frontend ci` 和 `npm --prefix frontend run build`。
+3. 使用 PowerShell 将构建产物复制到发布目录：`New-Item -ItemType Directory -Force web; Copy-Item frontend/dist/* web -Recurse -Force`。
+4. 运行 `scripts\start.bat`，访问 `http://127.0.0.1:5000`。也可使用 `.\.venv\Scripts\python.exe backend/run.py` 仅启动 API。
+5. 数据位于 `data/records.json`，首次运行自动初始化；请保留并备份此文件，演示样例不自动覆盖正式账本。
 
-1. 安装环境：运行 `scripts\setup.bat`（自动尝试国内镜像并回退官方源），创建项目内 `.venv` 并安装运行依赖。
-2. 运行测试（可选）：先执行 `scripts\setup.bat dev` 安装测试依赖，再运行 `.venv\Scripts\python.exe -m pytest tests\backend -v`。
-3. 启动应用：运行 `scripts\start.bat`（需先有 `web\index.html` 前端构建产物）。
-4. 访问地址：`http://127.0.0.1:5000`。
-5. 数据文件：`data\records.json`，首次运行自动初始化。
+当前可验证健康检查、类别、查询及统计；新增操作需等待写入接口接入。完整运行包的制作与复核仍需另行完成。
 
 ## 项目文档
 
 - [项目设计与协作规范](docs/项目设计与协作规范.md)：架构、接口、数据格式及模块约定。
 - [PM 模块交接](docs/PM模块交接.md)：已实现模块、接入方式及验证说明。
+
+- [9 号记录展示接入说明](docs/9号记录展示模块说明.md)：组件契约、验证命令及联调依赖。
