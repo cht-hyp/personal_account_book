@@ -1,0 +1,29 @@
+[
+  {
+    "id": "8db6c2be-c0fd-477c-82d4-00f0ac4bc0c7",
+    "date": "2026-11-07",
+    "type": "income",
+    "amount_cents": 100000,
+    "category": "工资",
+    "note": "11 月工资",
+    "created_at": "2026-11-07T06:20:00.000+00:00"
+  },
+  {
+    "id": "8ebfc4df-0255-4598-b896-4672ddcb2db9",
+    "date": "2026-11-07",
+    "type": "expense",
+    "amount_cents": 2000,
+    "category": "餐饮",
+    "note": "午餐",
+    "created_at": "2026-11-07T06:30:00.000+00:00"
+  },
+  {
+    "id": "6f01841f-69cf-48d5-83b6-54931a928ef6",
+    "date": "2026-11-07",
+    "type": "expense",
+    "amount_cents": 500,
+    "category": "交通",
+    "note": "公交充值",
+    "created_at": "2026-11-07T06:40:00.000+00:00"
+  }
+]
