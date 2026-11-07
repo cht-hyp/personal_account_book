@@ -18,7 +18,19 @@
 
 ## 当前进度
 
-当前已建立项目目录骨架，实现类别及参数校验；本分支补充记录表格、最近十条记录、刷新与异常提示，并提供独立组件测试和样例预览。完整记账流程及运行包仍在开发中，暂未提供完整应用的启动方式。
+当前已接入本地存储、类别与校验、查询、统计、前端框架和记录展示；本轮增加正式记账表单、筛选分页及后端应用装配。新增记账接口（3 号）尚未接入，完整新增流程与 Release 仍待验收。
+
+## 运行方式
+
+环境：Python（本轮使用 3.11.9 验证；1 号另有 3.13 环境验证记录）、Flask 3.1.2。开发构建需要兼容 Vite 的 Node.js 与 npm，依赖以锁文件为准。
+
+1. 运行 `scripts\setup.bat` 创建虚拟环境并安装后端依赖；开发测试可使用 `scripts\setup.bat dev`。
+2. 在根目录执行 `npm --prefix frontend ci` 和 `npm --prefix frontend run build`。
+3. 使用 PowerShell 将构建产物复制到发布目录：`New-Item -ItemType Directory -Force web; Copy-Item frontend/dist/* web -Recurse -Force`。
+4. 运行 `scripts\start.bat`，访问 `http://127.0.0.1:5000`。也可使用 `.\.venv\Scripts\python.exe backend/run.py` 仅启动 API。
+5. 数据位于 `data/records.json`，首次运行自动初始化；请保留并备份此文件，演示样例不自动覆盖正式账本。
+
+当前可验证健康检查、类别、查询及统计；新增操作需等待写入接口接入。完整运行包的制作与复核仍需另行完成。
 
 ## 项目文档
 
