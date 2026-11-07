@@ -1,8 +1,8 @@
 <script setup>
 /**
- * 【占位骨架】本文件属于 11 号（统计展示 / DevOps），由 7 号在骨架期提供最小可运行外壳。
- * 交付前必须由 11 号替换：正式统计卡片、空态、与 FilterPanel 的集成。
- * 契约要求保持不变：props 只有 items、totalCents；totalCents=0 时显示空态，不出现无效比例。
+ * 类别支出条形图：11 号负责。只消费后端 expense_by_category 汇总结果。
+ * 展示规则（README 6.4）：按金额降序；没有支出时显示空态，不出现无效比例；
+ * 金额为 0 的类别不占条形，避免无意义的 0% 行。
  */
 import { computed } from 'vue'
 import { formatMoney } from '../../utils/format.js'
@@ -14,10 +14,12 @@ const props = defineProps({
 
 const rows = computed(() => {
   if (!props.totalCents) return []
-  return props.items.map((item) => ({
-    ...item,
-    percent: Math.round((item.amount_cents / props.totalCents) * 100)
-  }))
+  return props.items
+    .filter((item) => item.amount_cents > 0)
+    .map((item) => ({
+      ...item,
+      percent: Math.round((item.amount_cents / props.totalCents) * 100)
+    }))
 })
 </script>
 

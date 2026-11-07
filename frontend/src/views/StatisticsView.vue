@@ -1,12 +1,13 @@
 <script setup>
 /**
- * 【占位骨架】本文件属于 11 号（统计展示 / DevOps），由 7 号在骨架期提供最小可运行外壳。
- * 交付前必须由 11 号替换：正式统计卡片、FilterPanel 集成、空态与刷新。
- * 契约要求保持不变：props 只有 categories、refreshKey；数据来自 /api/statistics。
+ * 统计页：11 号负责。展示当前筛选范围内的收入、支出、结余、记录数与类别支出汇总。
+ * 数据统一来自 /api/statistics（经 api/client.js），只消费后端汇总结果，
+ * 不在本页重新实现业务统计。FilterPanel 契约：search(filters) / reset()。
  */
 import { ref, watch } from 'vue'
 import { getStatistics, isApiError } from '../api/client.js'
 import { formatMoney } from '../utils/format.js'
+import FilterPanel from '../components/filters/FilterPanel.vue'
 import CategoryChart from '../components/statistics/CategoryChart.vue'
 
 const props = defineProps({
@@ -17,6 +18,8 @@ const props = defineProps({
 const stats = ref(null)
 const loading = ref(false)
 const errorMessage = ref('')
+/** 当前生效的筛选条件，使用与 /api/statistics 相同的 HTTP 参数名。 */
+const activeFilters = ref({})
 let requestSeq = 0
 
 async function load() {
@@ -24,10 +27,12 @@ async function load() {
   loading.value = true
   errorMessage.value = ''
   try {
-    const data = await getStatistics({})
+    // 统计接口只接受六个业务筛选参数；buildQuery 会按白名单丢弃其余键。
+    const data = await getStatistics(activeFilters.value)
     if (seq !== requestSeq) return
     stats.value = data
   } catch (error) {
+    // 请求失败必须保持错误态，不能伪装成“暂无数据”
     if (seq !== requestSeq) return
     stats.value = null
     errorMessage.value = isApiError(error) ? `${error.message}（${error.code}）` : '统计加载失败'
@@ -36,15 +41,27 @@ async function load() {
   }
 }
 
+function handleSearch(filters) {
+  activeFilters.value = { ...(filters || {}) }
+  load()
+}
+
+function handleReset() {
+  activeFilters.value = {}
+  load()
+}
+
 watch(() => props.refreshKey, load, { immediate: true })
 </script>
 
 <template>
   <div class="stats-view">
-    <div class="card">
-      <h2>收支统计</h2>
-      <p class="hint">11 号实现中：筛选集成与统计卡片。当前骨架展示全部记录汇总。</p>
-    </div>
+    <FilterPanel
+      :categories="categories"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
 
     <p v-if="loading" class="state-block state-loading">正在加载统计…</p>
     <div v-else-if="errorMessage" class="state-block state-error" role="alert">
@@ -75,6 +92,10 @@ watch(() => props.refreshKey, load, { immediate: true })
       </dl>
 
       <CategoryChart :items="stats.expense_by_category" :total-cents="stats.expense_cents" />
+
+      <p v-if="stats.count === 0" class="hint stats-empty-note">
+        当前筛选条件下没有匹配记录，上方数值均为零值。
+      </p>
     </template>
   </div>
 </template>
@@ -109,5 +130,9 @@ watch(() => props.refreshKey, load, { immediate: true })
   margin: 0;
   font-size: 22px;
   font-weight: 600;
+}
+
+.stats-empty-note {
+  margin: 0;
 }
 </style>
